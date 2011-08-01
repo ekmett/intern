@@ -3,6 +3,7 @@ module Data.Interned
   , Uninternable(..)
   , mkCache
   , Cache
+  , cacheSize
   , Id(..)
   , intern
   ) where
