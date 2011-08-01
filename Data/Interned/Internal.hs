@@ -26,6 +26,14 @@ data CacheState t = CacheState
 
 newtype Cache t = Cache { getCache :: MVar (CacheState t) }
 
+instance Show (Cache t) where
+  showsPrec d (Cache t) = let CacheState i m = unsafeDupablePerformIO (readMVar t) in
+    showParen (d > 10) $ showString "Cache {- next: " 
+                       . showsPrec 10 i 
+                       . showString ", entries: "
+                       . showsPrec 10 (HashMap.size m)
+                       . showString " -}"
+
 mkCache :: Cache t
 mkCache = Cache $ unsafePerformIO $ newMVar $ CacheState 0 HashMap.empty
 
