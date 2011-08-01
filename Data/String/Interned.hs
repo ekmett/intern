@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeFamilies, FlexibleInstances #-}
 module Data.String.Interned
-  ( InternedString
+  ( InternedString(..)
   ) where
 
 import Data.String

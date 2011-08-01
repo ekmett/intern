@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeFamilies, FlexibleInstances #-}
 module Data.ByteString.Interned
-  ( InternedByteString
+  ( InternedByteString(..)
   ) where
 
 import Data.String
@@ -10,7 +10,7 @@ import Data.ByteString.Char8 as Char8
 import Data.Hashable
 import Data.Function (on)
 
-data InternedByteString = IBS 
+data InternedByteString = InternedByteString 
   {-# UNPACK #-} !(Id InternedByteString)
   {-# UNPACK #-} !ByteString
 
@@ -24,19 +24,19 @@ instance Ord InternedByteString where
   compare = compare `on` identity
 
 instance Show InternedByteString where
-  showsPrec d (IBS _ b) = showsPrec d b
+  showsPrec d (InternedByteString _ b) = showsPrec d b
 
 instance Interned InternedByteString where
   type Uninterned InternedByteString = ByteString
   data Description InternedByteString = DBS {-# UNPACK #-} !ByteString
     deriving (Eq) 
   describe = DBS
-  identify = IBS
-  identity (IBS i _) = i
+  identify = InternedByteString
+  identity (InternedByteString i _) = i
   cache = ibsCache
 
 instance Uninternable InternedByteString where
-  unintern (IBS _ b) = b 
+  unintern (InternedByteString _ b) = b 
 
 instance Hashable (Description InternedByteString) where
   hash (DBS h) = hash h
