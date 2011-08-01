@@ -1,6 +1,6 @@
 name:          intern
 category:      Data, Data Structures
-version:       0.2.2
+version:       0.2.2.1
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -12,6 +12,8 @@ copyright:     Copyright (C) 2011 Edward A. Kmett
 synopsis:      Efficient hash-consing for arbitrary data types
 description:   Efficient hash-consing for arbitrary data types
 build-type:    Simple
+extra-source-files: 
+  examples/Term.hs
 
 source-repository head
   type: git

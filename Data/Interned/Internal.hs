@@ -29,7 +29,7 @@ newtype Cache t = Cache { getCache :: MVar (CacheState t) }
 
 cacheSize :: Cache t -> IO Int
 cacheSize (Cache t) = do
-  CacheState i m <- readMVar t
+  CacheState _ m <- readMVar t
   return (HashMap.size m)
 
 mkCache :: Cache t
