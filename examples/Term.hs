@@ -41,11 +41,13 @@ instance Interned Term where
   identity (Lam i _ _ _) = i
   identity (Pi i _ _ _) = i
   identity (Set i _) = i
+  cache = termCache
+
+instance Uninternable Term where
   unintern (App _ f a) = BApp f a
   unintern (Lam _ v t e) = BLam v t e
   unintern (Pi _ v t e) = BPi v t e
   unintern (Set _ n) = BSet n
-  cache = termCache
 
 termCache :: Cache Term
 termCache = mkCache
