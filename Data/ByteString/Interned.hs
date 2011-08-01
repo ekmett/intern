@@ -31,10 +31,12 @@ instance Interned InternedByteString where
   data Description InternedByteString = DBS {-# UNPACK #-} !ByteString
     deriving (Eq) 
   describe = DBS
-  unintern (IBS _ b) = b 
   identify = IBS
   identity (IBS i _) = i
   cache = ibsCache
+
+instance Uninternable InternedByteString where
+  unintern (IBS _ b) = b 
 
 instance Hashable (Description InternedByteString) where
   hash (DBS h) = hash h

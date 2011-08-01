@@ -2,6 +2,7 @@
            , FlexibleInstances
            , FlexibleContexts
            , GeneralizedNewtypeDeriving #-}
+
 module Term where
 
 import Data.Function (on)

@@ -5,6 +5,7 @@
 
 module Data.Interned.Internal
   ( Interned(..)
+  , Uninternable(..)
   , mkCache
   , Cache(..)
   , CacheState(..)
@@ -40,10 +41,12 @@ class ( Eq (Description t)
   data Description t
   type Uninterned t
   describe :: Uninterned t -> Description t 
-  unintern :: t -> Uninterned t
   identify :: Id t -> Uninterned t -> t
   identity :: t -> Id t
   cache    :: Cache t
+
+class Interned t => Uninternable t where
+  unintern :: t -> Uninterned t
 
 intern :: Interned t => Uninterned t -> t
 intern bt = unsafeDupablePerformIO $ modifyMVar (getCache cache) go 

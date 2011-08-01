@@ -1,5 +1,6 @@
 module Data.Interned
   ( Interned(..)
+  , Uninternable(..)
   , mkCache
   , Cache
   , Id(..)

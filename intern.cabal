@@ -1,6 +1,6 @@
 name:          intern
 category:      Data, Data Structures
-version:       0.1.1
+version:       0.2.0
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -28,5 +28,6 @@ library
     Data.Interned
     Data.Interned.Internal
     Data.ByteString.Interned
+    Data.String.Interned
 
   ghc-options: -Wall 
