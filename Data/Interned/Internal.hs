@@ -12,6 +12,7 @@ module Data.Interned.Internal
   , cacheSize
   , Id
   , intern
+  , recover
   ) where
 
 import Data.Hashable
@@ -35,6 +36,7 @@ cacheSize (Cache t) = do
 mkCache :: Interned t => Cache t
 mkCache = result where
   result = Cache $ unsafePerformIO $ newMVar $ CacheState (seedIdentity result) HashMap.empty
+
 
 type Id = Int
 
@@ -69,3 +71,11 @@ intern bt = unsafeDupablePerformIO $ modifyMVar (getCache cache) go
              return (CacheState (i + 1) (HashMap.insert dt wt m), t)
   remove = modifyMVar_ (getCache cache) $ 
     \ (CacheState i m) -> return $ CacheState i (HashMap.delete dt m)
+
+-- given a description, go hunting for an entry in the cache
+recover :: Interned t => Description t -> IO (Maybe t)
+recover dt = do
+  CacheState _ m <- readMVar $ getCache cache
+  case HashMap.lookup dt m of
+    Nothing -> return Nothing
+    Just wt -> deRefWeak wt
