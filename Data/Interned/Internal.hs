@@ -10,7 +10,7 @@ module Data.Interned.Internal
   , Cache(..)
   , CacheState(..)
   , cacheSize
-  , Id(..)
+  , Id
   , intern
   ) where
 
@@ -22,7 +22,7 @@ import GHC.IO (unsafeDupablePerformIO, unsafePerformIO)
 import System.Mem.Weak
 
 data CacheState t = CacheState 
-   {-# UNPACK #-} !(Id t) 
+   {-# UNPACK #-} !Id
    !(HashMap (Description t) (Weak t))
 
 newtype Cache t = Cache { getCache :: MVar (CacheState t) }
@@ -35,11 +35,7 @@ cacheSize (Cache t) = do
 mkCache :: Cache t
 mkCache = Cache $ unsafePerformIO $ newMVar $ CacheState 0 HashMap.empty
 
-newtype Id t = Id Int deriving (Eq,Ord,Show,Num,Real,Integral,Enum)
-
-instance Hashable (Id t) where
-  hash (Id t) = hash t
-  hashWithSalt s (Id t) = hashWithSalt s t
+type Id = Int
 
 class ( Eq (Description t)
       , Hashable (Description t)
@@ -47,8 +43,8 @@ class ( Eq (Description t)
   data Description t
   type Uninterned t
   describe :: Uninterned t -> Description t 
-  identify :: Id t -> Uninterned t -> t
-  identity :: t -> Id t
+  identify :: Id -> Uninterned t -> t
+  identity :: t -> Id
   cache    :: Cache t
 
 class Interned t => Uninternable t where

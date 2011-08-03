@@ -4,7 +4,7 @@ module Data.Interned
   , mkCache
   , Cache
   , cacheSize
-  , Id(..)
+  , Id
   , intern
   ) where
 
