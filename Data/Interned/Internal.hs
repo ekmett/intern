@@ -32,8 +32,9 @@ cacheSize (Cache t) = do
   CacheState _ m <- readMVar t
   return (HashMap.size m)
 
-mkCache :: Cache t
-mkCache = Cache $ unsafePerformIO $ newMVar $ CacheState 0 HashMap.empty
+mkCache :: Interned t => Cache t
+mkCache = result where
+  result = Cache $ unsafePerformIO $ newMVar $ CacheState (seedIdentity result) HashMap.empty
 
 type Id = Int
 
@@ -45,7 +46,9 @@ class ( Eq (Description t)
   describe :: Uninterned t -> Description t 
   identify :: Id -> Uninterned t -> t
   identity :: t -> Id
-  cache    :: Cache t
+  seedIdentity :: p t -> Id
+  seedIdentity _ = 0
+  cache        :: Cache t
 
 class Interned t => Uninternable t where
   unintern :: t -> Uninterned t
