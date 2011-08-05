@@ -60,7 +60,7 @@ class Interned t => Uninternable t where
 intern :: Interned t => Uninterned t -> t
 intern !bt = unsafeDupablePerformIO $ modifyAdvice $ modifyMVar (getCache cache) go
   where
-  dt = describe bt
+  !dt = describe bt
   go (CacheState i m) = case HashMap.lookup dt m of
     Nothing -> k i m
     Just wt -> do
@@ -76,7 +76,7 @@ intern !bt = unsafeDupablePerformIO $ modifyAdvice $ modifyMVar (getCache cache)
 
 -- given a description, go hunting for an entry in the cache
 recover :: Interned t => Description t -> IO (Maybe t)
-recover dt = do
+recover !dt = do
   CacheState _ m <- readMVar $ getCache cache
   case HashMap.lookup dt m of
     Nothing -> return Nothing
