@@ -37,7 +37,6 @@ mkCache :: Interned t => Cache t
 mkCache = result where
   result = Cache $ unsafePerformIO $ newMVar $ CacheState (seedIdentity result) HashMap.empty
 
-
 type Id = Int
 
 class ( Eq (Description t)
@@ -50,13 +49,15 @@ class ( Eq (Description t)
   identity :: t -> Id
   seedIdentity :: p t -> Id
   seedIdentity _ = 0
+  modifyAdvice :: IO t -> IO t
+  modifyAdvice = id
   cache        :: Cache t
 
 class Interned t => Uninternable t where
   unintern :: t -> Uninterned t
 
 intern :: Interned t => Uninterned t -> t
-intern bt = unsafeDupablePerformIO $ modifyMVar (getCache cache) go 
+intern bt = unsafeDupablePerformIO $ modifyAdvice $ modifyMVar (getCache cache) go
   where
   dt = describe bt
   go (CacheState i m) = case HashMap.lookup dt m of
