@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeFamilies
            , FlexibleInstances
            , FlexibleContexts
+           , BangPatterns
            , GeneralizedNewtypeDeriving #-}
 
 module Data.Interned.Internal
@@ -57,7 +58,7 @@ class Interned t => Uninternable t where
   unintern :: t -> Uninterned t
 
 intern :: Interned t => Uninterned t -> t
-intern bt = unsafeDupablePerformIO $ modifyAdvice $ modifyMVar (getCache cache) go
+intern !bt = unsafeDupablePerformIO $ modifyAdvice $ modifyMVar (getCache cache) go
   where
   dt = describe bt
   go (CacheState i m) = case HashMap.lookup dt m of
