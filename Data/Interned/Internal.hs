@@ -57,6 +57,7 @@ mkCache   = result where
 type Id = Int
 
 class ( Eq (Description t)
+      ,	Show t -- HACK
       , Hashable (Description t)
       ) => Interned t where
   data Description t
@@ -82,7 +83,7 @@ intern !bt = unsafeDupablePerformIO $ modifyAdvice $ modifyMVar slot go
   !dt = describe bt
   !hdt = hash dt
   !wid = cacheWidth dt
-  (q,r) = hdt `divMod` wid
+  r = hdt `mod` wid
   
   go (CacheState i m) = case HashMap.lookup dt m of
     Nothing -> k i m
@@ -91,7 +92,7 @@ intern !bt = unsafeDupablePerformIO $ modifyAdvice $ modifyMVar slot go
       case mt of 
         Just t -> return (CacheState i m, t)
         Nothing -> k i m
-  k i m = do let t = identify (q * i + r) bt 
+  k i m = do let t = identify (wid * i + r) bt 
              wt <- t `seq` mkWeakPtr t $ Just remove
              return (CacheState (i + 1) (HashMap.insert dt wt m), t)
   remove = modifyMVar_ slot $ 

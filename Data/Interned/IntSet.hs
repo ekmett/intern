@@ -115,6 +115,7 @@ import qualified Data.List as List
 import Data.Monoid (Monoid(..))
 import Data.Maybe (fromMaybe)
 import Data.Interned.Internal
+import Data.Bits
 import Data.Function (on)
 import Data.Hashable
 import Text.Read
@@ -165,11 +166,24 @@ data UninternedIntSet
   | UTip !Int
   | UBin {-# UNPACK #-} !Prefix {-# UNPACK #-} !Mask !IntSet !IntSet
 
+
 tip :: Int -> IntSet
 tip n = intern (UTip n) 
 
+{--------------------------------------------------------------------
+  @bin@ assures that we never have empty trees within a tree.
+--------------------------------------------------------------------}
+bin :: Prefix -> Mask -> IntSet -> IntSet -> IntSet
+bin _ _ l Nil = l
+bin _ _ Nil r = r
+--bin p m l r   = bin_ p m l r
+bin p m l r   
+   | m .&. (m - 1) /= 0 = error "illegal mask"
+   | otherwise = intern (UBin p m l r)
+
 bin_ :: Prefix -> Mask -> IntSet -> IntSet -> IntSet
-bin_ p m l r = intern (UBin p m l r) 
+bin_ = bin
+--bin_ p m l r = intern (UBin p m l r) 
 
 instance Interned IntSet where
   type Uninterned IntSet = UninternedIntSet
@@ -193,7 +207,7 @@ instance Interned IntSet where
 
 instance Hashable (Description IntSet) where
   hash DNil = 0
-  hash (DTip n) = hash n
+  hash (DTip n) = 1 `hashWithSalt` n
   hash (DBin p m l r) = hash p `hashWithSalt` m `hashWithSalt` l `hashWithSalt` r
 
 intSetCache :: Cache IntSet
@@ -818,7 +832,7 @@ instance Ord IntSet where
   -- compare s1 s2 = compare (toAscList s1) (toAscList s2) 
 
 {--------------------------------------------------------------------
-  Eq 
+  Hashable
 --------------------------------------------------------------------}
 instance Hashable IntSet where
   hash = hash . identity
@@ -857,13 +871,6 @@ join p1 t1 p2 t2
     m = branchMask p1 p2
     p = mask p1 m
 
-{--------------------------------------------------------------------
-  @bin@ assures that we never have empty trees within a tree.
---------------------------------------------------------------------}
-bin :: Prefix -> Mask -> IntSet -> IntSet -> IntSet
-bin _ _ l Nil = l
-bin _ _ Nil r = r
-bin p m l r   = bin_ p m l r
 
   
 {--------------------------------------------------------------------
