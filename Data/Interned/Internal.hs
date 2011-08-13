@@ -16,27 +16,43 @@ module Data.Interned.Internal
   , recover
   ) where
 
+import Data.Array
 import Data.Hashable
 import Data.HashMap.Strict (HashMap)
+import Data.Foldable
+import Data.Traversable
 import qualified Data.HashMap.Strict as HashMap
 import Control.Concurrent.MVar
 import GHC.IO (unsafeDupablePerformIO, unsafePerformIO)
 import System.Mem.Weak
 
-data CacheState t = CacheState 
-   {-# UNPACK #-} !Id
-   !(HashMap (Description t) (Weak t))
+-- tuning parameter
+defaultCacheWidth :: Int
+defaultCacheWidth = 1024
 
-newtype Cache t = Cache { getCache :: MVar (CacheState t) }
+data CacheState t = CacheState 
+   { fresh :: {-# UNPACK #-} !Id
+   , content :: !(HashMap (Description t) (Weak t))
+   }
+
+newtype Cache t = Cache { getCache :: Array Int (MVar (CacheState t)) }
 
 cacheSize :: Cache t -> IO Int
-cacheSize (Cache t) = do
-  CacheState _ m <- readMVar t
-  return (HashMap.size m)
+cacheSize (Cache t) = foldrM 
+   (\a b -> do 
+       v <- readMVar a
+       return $! HashMap.size (content v) + b
+   ) 0 t
 
 mkCache :: Interned t => Cache t
-mkCache = result where
-  result = Cache $ unsafePerformIO $ newMVar $ CacheState (seedIdentity result) HashMap.empty
+mkCache   = result where
+  element = CacheState (seedIdentity result) HashMap.empty
+  w       = cacheWidth result
+  result  = Cache 
+          $ unsafePerformIO 
+          $ traverse newMVar 
+          $ listArray (0,w - 1) 
+          $ replicate w element
 
 type Id = Int
 
@@ -50,6 +66,8 @@ class ( Eq (Description t)
   identity :: t -> Id
   seedIdentity :: p t -> Id
   seedIdentity _ = 0
+  cacheWidth :: p t -> Int
+  cacheWidth _ = defaultCacheWidth
   modifyAdvice :: IO t -> IO t
   modifyAdvice = id
   cache        :: Cache t
@@ -58,9 +76,14 @@ class Interned t => Uninternable t where
   unintern :: t -> Uninterned t
 
 intern :: Interned t => Uninterned t -> t
-intern !bt = unsafeDupablePerformIO $ modifyAdvice $ modifyMVar (getCache cache) go
+intern !bt = unsafeDupablePerformIO $ modifyAdvice $ modifyMVar slot go
   where
+  slot = getCache cache ! r
   !dt = describe bt
+  !hdt = hash dt
+  !wid = cacheWidth dt
+  (q,r) = hdt `divMod` wid
+  
   go (CacheState i m) = case HashMap.lookup dt m of
     Nothing -> k i m
     Just wt -> do
@@ -68,16 +91,17 @@ intern !bt = unsafeDupablePerformIO $ modifyAdvice $ modifyMVar (getCache cache)
       case mt of 
         Just t -> return (CacheState i m, t)
         Nothing -> k i m
-  k i m = do let t = identify i bt 
+  k i m = do let t = identify (q * i + r) bt 
              wt <- t `seq` mkWeakPtr t $ Just remove
              return (CacheState (i + 1) (HashMap.insert dt wt m), t)
-  remove = modifyMVar_ (getCache cache) $ 
+  remove = modifyMVar_ slot $ 
     \ (CacheState i m) -> return $ CacheState i (HashMap.delete dt m)
 
 -- given a description, go hunting for an entry in the cache
 recover :: Interned t => Description t -> IO (Maybe t)
 recover !dt = do
-  CacheState _ m <- readMVar $ getCache cache
+  CacheState _ m <- readMVar $ getCache cache ! (hash dt `mod` cacheWidth dt)
   case HashMap.lookup dt m of
     Nothing -> return Nothing
     Just wt -> deRefWeak wt
+  

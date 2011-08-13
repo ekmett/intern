@@ -114,7 +114,7 @@ import Data.Bits
 import qualified Data.List as List
 import Data.Monoid (Monoid(..))
 import Data.Maybe (fromMaybe)
-import Data.Interned
+import Data.Interned.Internal
 import Data.Function (on)
 import Data.Hashable
 import Text.Read
@@ -184,6 +184,7 @@ instance Interned IntSet where
   identity Nil = 0
   identity (Tip i _) = i
   identity (Bin i _ _ _ _ _) = i
+  cacheWidth _ = 16384 -- a huge cache width! 
   seedIdentity _ = 1
   identify _ UNil = Nil
   identify i (UTip j) = Tip i j 

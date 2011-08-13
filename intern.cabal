@@ -25,7 +25,8 @@ library
     bytestring >= 0.9.1 && < 0.10,
     text >= 0.11.1.5 && < 0.12,
     hashable >= 1.1.2 && < 1.2,
-    unordered-containers >= 0.1.4 && < 0.2
+    unordered-containers >= 0.1.4 && < 0.2,
+    array >= 0.3.0.2 && < 0.4
 
   exposed-modules:
     Data.Interned
