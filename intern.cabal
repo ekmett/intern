@@ -1,6 +1,6 @@
 name:          intern
 category:      Data, Data Structures
-version:       0.5.2
+version:       0.6
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -10,7 +10,17 @@ stability:     experimental
 homepage:      http://github.com/ekmett/intern/
 copyright:     Copyright (C) 2011 Edward A. Kmett
 synopsis:      Efficient hash-consing for arbitrary data types
-description:   Efficient hash-consing for arbitrary data types
+description:   
+    Efficient hash-consing for arbitrary data types
+    .
+    Changes from 0.5.2 to 0.6
+    .
+    * Widened the caches so they don't go through a single MVar per type. This has made a dramatic impact on performance. However, this broke the previous invariant that newer entries always had higher Ids than older entries.
+    .
+    Changes from 0.5.1 to 0.5.2
+    .
+    * Added Data.Interned.IntSet
+
 build-type:    Simple
 extra-source-files: 
   examples/Term.hs
