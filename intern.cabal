@@ -1,6 +1,6 @@
 name:          intern
 category:      Data, Data Structures
-version:       0.5.1.1
+version:       0.5.2
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -32,6 +32,7 @@ library
     Data.Interned.ByteString
     Data.Interned.String
     Data.Interned.Text
+    Data.Interned.IntSet
     Data.Interned.Internal
     Data.Interned.Internal.ByteString
     Data.Interned.Internal.String
