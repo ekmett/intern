@@ -7,7 +7,6 @@ import Data.String
 import Data.Interned
 import Data.Text
 import Data.Hashable
-import Data.Function (on)
 
 data InternedText = InternedText 
   {-# UNPACK #-} !Id
@@ -17,10 +16,10 @@ instance IsString InternedText where
   fromString = intern . pack
 
 instance Eq InternedText where
-  (==) = (==) `on` identity
+  InternedText i _ == InternedText j _ = i == j
 
 instance Ord InternedText where
-  compare = compare `on` identity
+  compare (InternedText i _) (InternedText j _) = compare i j
 
 instance Show InternedText where
   showsPrec d (InternedText _ b) = showsPrec d b

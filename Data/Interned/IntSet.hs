@@ -1,4 +1,4 @@
-{-# LANGUAGE MagicHash, TypeFamilies, FlexibleInstances #-}
+{-# LANGUAGE MagicHash, TypeFamilies, FlexibleInstances, BangPatterns #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Interned.IntSet
@@ -110,13 +110,11 @@ module Data.Interned.IntSet  (
             ) where
 
 import Prelude hiding (lookup,filter,foldr,foldl,null,map)
-import Data.Bits 
 import qualified Data.List as List
 import Data.Monoid (Monoid(..))
 import Data.Maybe (fromMaybe)
 import Data.Interned.Internal
 import Data.Bits
-import Data.Function (on)
 import Data.Hashable
 import Text.Read
 import GHC.Exts ( Word(..), Int(..), shiftRL# )
@@ -176,14 +174,10 @@ tip n = intern (UTip n)
 bin :: Prefix -> Mask -> IntSet -> IntSet -> IntSet
 bin _ _ l Nil = l
 bin _ _ Nil r = r
---bin p m l r   = bin_ p m l r
-bin p m l r   
-   | m .&. (m - 1) /= 0 = error "illegal mask"
-   | otherwise = intern (UBin p m l r)
+bin p m l r = intern (UBin p m l r)
 
 bin_ :: Prefix -> Mask -> IntSet -> IntSet -> IntSet
-bin_ = bin
---bin_ p m l r = intern (UBin p m l r) 
+bin_ p m l r = intern (UBin p m l r)
 
 instance Interned IntSet where
   type Uninterned IntSet = UninternedIntSet
@@ -820,7 +814,10 @@ withEmpty bars = "   ":bars
 
 -- /O(1)/
 instance Eq IntSet where
-  (==) = (==) `on` identity
+  Nil             == Nil             = True
+  Tip i _         == Tip j _         = i == j
+  Bin i _ _ _ _ _ == Bin j _ _ _ _ _ = i == j
+  _ == _ = False
 
 {--------------------------------------------------------------------
   Ord 
@@ -828,14 +825,16 @@ instance Eq IntSet where
       but is usable for comparison
 --------------------------------------------------------------------}
 instance Ord IntSet where
-  compare = compare `on` identity
+  Nil `compare` Nil = EQ
+  Nil `compare` Tip _ _ = LT
+  Nil `compare` Bin _ _ _ _ _ _ = LT
+  Tip _ _ `compare` Nil = GT
+  Tip i _ `compare` Tip j _ = compare i j
+  Tip i _ `compare` Bin j _ _ _ _ _ = compare i j 
+  Bin _ _ _ _ _ _ `compare` Nil = GT
+  Bin i _ _ _ _ _ `compare` Tip j _ = compare i j
+  Bin i _ _ _ _ _ `compare` Bin j _ _ _ _ _ = compare i j
   -- compare s1 s2 = compare (toAscList s1) (toAscList s2) 
-
-{--------------------------------------------------------------------
-  Hashable
---------------------------------------------------------------------}
-instance Hashable IntSet where
-  hash = hash . identity
 
 {--------------------------------------------------------------------
   Show

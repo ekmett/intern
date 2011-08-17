@@ -1,6 +1,6 @@
 name:          intern
 category:      Data, Data Structures
-version:       0.6
+version:       0.8
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -11,6 +11,15 @@ homepage:      http://github.com/ekmett/intern/
 copyright:     Copyright (C) 2011 Edward A. Kmett
 synopsis:      Efficient hash-consing for arbitrary data types
 description:   
+    Changes from 0.7 to 0.8
+    .
+    * Disabled cache removal as it was causing problems on large data sets. There is no good way to ensure that both references remain alive long enough to finish comparisons.
+    * Switched to IORef from MVar
+    .
+    Changes from 0.6 to 0.7
+    .
+    * Fixed problem where comparisons could happen between data structures while one was still a thunk, leading to equal structures comparing as inequal in limited circumstances, by appropriately using strictness annotations. 
+    .
     Efficient hash-consing for arbitrary data types
     .
     Changes from 0.5.2 to 0.6

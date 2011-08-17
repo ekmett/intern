@@ -8,7 +8,6 @@ import Data.Interned
 import Data.ByteString
 import Data.ByteString.Char8 as Char8
 import Data.Hashable
-import Data.Function (on)
 
 data InternedByteString = InternedByteString 
   {-# UNPACK #-} !Id
@@ -18,10 +17,10 @@ instance IsString InternedByteString where
   fromString = intern . Char8.pack
 
 instance Eq InternedByteString where
-  (==) = (==) `on` identity
+  InternedByteString i _ == InternedByteString j _ = i == j
 
 instance Ord InternedByteString where
-  compare = compare `on` identity
+  InternedByteString i _ `compare` InternedByteString j _ = i `compare` j
 
 instance Show InternedByteString where
   showsPrec d (InternedByteString _ b) = showsPrec d b
