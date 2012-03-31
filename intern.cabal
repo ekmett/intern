@@ -1,6 +1,6 @@
 name:          intern
 category:      Data, Data Structures
-version:       0.8
+version:       0.8.0.1
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -10,7 +10,7 @@ stability:     experimental
 homepage:      http://github.com/ekmett/intern/
 copyright:     Copyright (C) 2011 Edward A. Kmett
 synopsis:      Efficient hash-consing for arbitrary data types
-description:   
+description:
     Changes from 0.7 to 0.8
     .
     * Disabled cache removal as it was causing problems on large data sets. There is no good way to ensure that both references remain alive long enough to finish comparisons.
@@ -18,7 +18,7 @@ description:
     .
     Changes from 0.6 to 0.7
     .
-    * Fixed problem where comparisons could happen between data structures while one was still a thunk, leading to equal structures comparing as inequal in limited circumstances, by appropriately using strictness annotations. 
+    * Fixed problem where comparisons could happen between data structures while one was still a thunk, leading to equal structures comparing as inequal in limited circumstances, by appropriately using strictness annotations.
     .
     Efficient hash-consing for arbitrary data types
     .
@@ -31,7 +31,7 @@ description:
     * Added Data.Interned.IntSet
 
 build-type:    Simple
-extra-source-files: 
+extra-source-files:
   examples/Term.hs
 
 source-repository head
@@ -39,13 +39,13 @@ source-repository head
   location: git://github.com/ekmett/intern.git
 
 library
-  build-depends: 
-    base >= 4 && < 5,
-    bytestring >= 0.9.1 && < 0.10,
-    text >= 0.11.1.5 && < 0.12,
-    hashable >= 1.1.2 && < 1.2,
-    unordered-containers >= 0.1.4 && < 0.2,
-    array >= 0.3.0.2 && < 0.4
+  build-depends:
+    base                 >= 4 && < 5,
+    bytestring           >= 0.9.1 && < 0.10,
+    text                 >= 0.11.1.5 && < 0.12,
+    hashable             >= 1.1.2 && < 1.2,
+    unordered-containers >= 0.2.1 && < 0.3,
+    array                >= 0.4 && < 0.5
 
   exposed-modules:
     Data.Interned
@@ -58,4 +58,4 @@ library
     Data.Interned.Internal.String
     Data.Interned.Internal.Text
 
-  ghc-options: -Wall 
+  ghc-options: -Wall
