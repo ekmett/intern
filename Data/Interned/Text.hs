@@ -1,5 +1,5 @@
 module Data.Interned.Text
-  ( InternedText
+  ( InternedText(internedTextId)
   ) where
 
 import Data.Interned.Internal.Text

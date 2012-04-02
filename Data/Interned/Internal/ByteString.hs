@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies, FlexibleInstances, GeneralizedNewtypeDeriving #-}
 module Data.Interned.Internal.ByteString
   ( InternedByteString(..)
   ) where
@@ -9,9 +9,10 @@ import Data.ByteString
 import Data.ByteString.Char8 as Char8
 import Data.Hashable
 
-data InternedByteString = InternedByteString 
-  {-# UNPACK #-} !Id
-  {-# UNPACK #-} !ByteString
+data InternedByteString = InternedByteString
+  { internedByteStringId :: {-# UNPACK #-} !Id
+  , uninternByteString   :: {-# UNPACK #-} !ByteString
+  }
 
 instance IsString InternedByteString where
   fromString = intern . Char8.pack
@@ -27,17 +28,13 @@ instance Show InternedByteString where
 
 instance Interned InternedByteString where
   type Uninterned InternedByteString = ByteString
-  data Description InternedByteString = DBS {-# UNPACK #-} !ByteString deriving (Eq) 
+  newtype Description InternedByteString = DBS ByteString deriving (Eq,Hashable)
   describe = DBS
   identify = InternedByteString
-  identity (InternedByteString i _) = i
   cache = ibsCache
 
 instance Uninternable InternedByteString where
-  unintern (InternedByteString _ b) = b 
-
-instance Hashable (Description InternedByteString) where
-  hash (DBS h) = hash h
+  unintern = uninternByteString
 
 ibsCache :: Cache InternedByteString
 ibsCache = mkCache

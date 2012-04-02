@@ -42,10 +42,10 @@
 --
 -- This can mean a drastic reduction in the memory footprint of a program
 -- in exchange for much more costly set manipulation.
--- 
+--
 -----------------------------------------------------------------------------
 
-module Data.Interned.IntSet  ( 
+module Data.Interned.IntSet  (
             -- * Set type
               IntSet          -- instance Eq,Show
 
@@ -59,18 +59,18 @@ module Data.Interned.IntSet  (
             , notMember
             , isSubsetOf
             , isProperSubsetOf
-            
+
             -- * Construction
             , empty
             , singleton
             , insert
             , delete
-            
+
             -- * Combine
             , union, unions
             , difference
             , intersection
-            
+
             -- * Filter
             , filter
             , partition
@@ -78,7 +78,7 @@ module Data.Interned.IntSet  (
             , splitMember
 
             -- * Min\/Max
-            , findMin   
+            , findMin
             , findMax
             , deleteMin
             , deleteMax
@@ -98,12 +98,12 @@ module Data.Interned.IntSet  (
             , elems
             , toList
             , fromList
-            
+
             -- ** Ordered list
             , toAscList
             , fromAscList
             , fromDistinctAscList
-                        
+
             -- * Debugging
             , showTree
             , showTreeWith
@@ -144,10 +144,10 @@ shiftRL (W# x) (I# i) = W# (shiftRL# x i)
 m1 \\ m2 = difference m1 m2
 
 {--------------------------------------------------------------------
-  Types  
+  Types
 --------------------------------------------------------------------}
 -- | A set of integers.
-data IntSet 
+data IntSet
   = Nil
   | Tip {-# UNPACK #-} !Id {-# UNPACK #-} !Int
   | Bin {-# UNPACK #-} !Id {-# UNPACK #-} !Int {-# UNPACK #-} !Prefix {-# UNPACK #-} !Mask !IntSet !IntSet
@@ -159,14 +159,14 @@ data IntSet
 -- Invariant: In Bin prefix mask left right, left consists of the elements that
 --            don't have the mask bit set; right is all the elements that do.
 
-data UninternedIntSet 
-  = UNil 
+data UninternedIntSet
+  = UNil
   | UTip !Int
   | UBin {-# UNPACK #-} !Prefix {-# UNPACK #-} !Mask !IntSet !IntSet
 
 
 tip :: Int -> IntSet
-tip n = intern (UTip n) 
+tip n = intern (UTip n)
 
 {--------------------------------------------------------------------
   @bin@ assures that we never have empty trees within a tree.
@@ -179,25 +179,27 @@ bin p m l r = intern (UBin p m l r)
 bin_ :: Prefix -> Mask -> IntSet -> IntSet -> IntSet
 bin_ p m l r = intern (UBin p m l r)
 
+identity :: IntSet -> Id
+identity Nil = 0
+identity (Tip i _) = i
+identity (Bin i _ _ _ _ _) = i
+
 instance Interned IntSet where
   type Uninterned IntSet = UninternedIntSet
-  data Description IntSet 
-    = DNil 
-    | DTip {-# UNPACK #-} !Int 
+  data Description IntSet
+    = DNil
+    | DTip {-# UNPACK #-} !Int
     | DBin {-# UNPACK #-} !Prefix {-# UNPACK #-} !Mask {-# UNPACK #-} !Id {-# UNPACK #-} !Id
     deriving Eq
   describe UNil = DNil
   describe (UTip j) = DTip j
   describe (UBin p m l r) = DBin p m (identity l) (identity r)
-  identity Nil = 0
-  identity (Tip i _) = i
-  identity (Bin i _ _ _ _ _) = i
-  cacheWidth _ = 16384 -- a huge cache width! 
+  cacheWidth _ = 16384 -- a huge cache width!
   seedIdentity _ = 1
   identify _ UNil = Nil
-  identify i (UTip j) = Tip i j 
+  identify i (UTip j) = Tip i j
   identify i (UBin p m l r) = Bin i (size l + size r) p m l r
-  cache = intSetCache 
+  cache = intSetCache
 
 instance Hashable (Description IntSet) where
   hash DNil = 0
@@ -207,7 +209,7 @@ instance Hashable (Description IntSet) where
 intSetCache :: Cache IntSet
 intSetCache = mkCache
 {-# NOINLINE intSetCache #-}
-  
+
 instance Uninternable IntSet where
   unintern Nil = UNil
   unintern (Tip _ j) = UTip j
@@ -243,7 +245,7 @@ size t
 member :: Int -> IntSet -> Bool
 member x t
   = case t of
-      Bin _ _ p m l r 
+      Bin _ _ p m l r
         | nomatch x p m -> False
         | zero x m      -> member x l
         | otherwise     -> member x r
@@ -293,11 +295,11 @@ singleton x = tip x
 insert :: Int -> IntSet -> IntSet
 insert x t
   = case t of
-      Bin _ _ p m l r 
+      Bin _ _ p m l r
         | nomatch x p m -> join x (tip x) p t
         | zero x m      -> bin_ p m (insert x l) r
         | otherwise     -> bin_ p m l (insert x r)
-      Tip _ y 
+      Tip _ y
         | x==y          -> tip x
         | otherwise     -> join x (tip x) y t
       Nil -> tip x
@@ -306,11 +308,11 @@ insert x t
 insertR :: Int -> IntSet -> IntSet
 insertR x t
   = case t of
-      Bin _ _ p m l r 
+      Bin _ _ p m l r
         | nomatch x p m -> join x (tip x) p t
         | zero x m      -> bin_ p m (insert x l) r
         | otherwise     -> bin_ p m l (insert x r)
-      Tip _ y 
+      Tip _ y
         | x==y          -> t
         | otherwise     -> join x (tip x) y t
       Nil -> tip x
@@ -320,11 +322,11 @@ insertR x t
 delete :: Int -> IntSet -> IntSet
 delete x t
   = case t of
-      Bin _ _ p m l r 
+      Bin _ _ p m l r
         | nomatch x p m -> t
         | zero x m      -> bin p m (delete x l) r
         | otherwise     -> bin p m l (delete x r)
-      Tip _ y 
+      Tip _ y
         | x==y          -> Nil
         | otherwise     -> t
       Nil -> Nil
@@ -338,7 +340,7 @@ unions :: [IntSet] -> IntSet
 unions xs = foldlStrict union empty xs
 
 
--- | /O(n+m)/. The union of two sets. 
+-- | /O(n+m)/. The union of two sets.
 union :: IntSet -> IntSet -> IntSet
 union t1@(Bin _ _ p1 m1 l1 r1) t2@(Bin _ _ p2 m2 l2 r2)
   | shorter m1 m2  = union1
@@ -363,7 +365,7 @@ union t Nil       = t
 {--------------------------------------------------------------------
   Difference
 --------------------------------------------------------------------}
--- | /O(n+m)/. Difference between two sets. 
+-- | /O(n+m)/. Difference between two sets.
 difference :: IntSet -> IntSet -> IntSet
 difference t1@(Bin _ _ p1 m1 l1 r1) t2@(Bin _ _ p2 m2 l2 r2)
   | shorter m1 m2  = difference1
@@ -379,7 +381,7 @@ difference t1@(Bin _ _ p1 m1 l1 r1) t2@(Bin _ _ p2 m2 l2 r2)
                 | zero p1 m2        = difference t1 l2
                 | otherwise         = difference t1 r2
 
-difference t1@(Tip _ x) t2 
+difference t1@(Tip _ x) t2
   | member x t2  = Nil
   | otherwise    = t1
 
@@ -392,7 +394,7 @@ difference t Nil       = t
 {--------------------------------------------------------------------
   Intersection
 --------------------------------------------------------------------}
--- | /O(n+m)/. The intersection of two sets. 
+-- | /O(n+m)/. The intersection of two sets.
 intersection :: IntSet -> IntSet -> IntSet
 intersection t1@(Bin _ _ p1 m1 l1 r1) t2@(Bin _ _ p2 m2 l2 r2)
   | shorter m1 m2  = intersection1
@@ -408,10 +410,10 @@ intersection t1@(Bin _ _ p1 m1 l1 r1) t2@(Bin _ _ p2 m2 l2 r2)
                   | zero p1 m2        = intersection t1 l2
                   | otherwise         = intersection t1 r2
 
-intersection t1@(Tip _ x) t2 
+intersection t1@(Tip _ x) t2
   | member x t2  = t1
   | otherwise    = Nil
-intersection t (Tip _ x) 
+intersection t (Tip _ x)
   = case lookup x t of
       Just y  -> tip y
       Nothing -> Nil
@@ -425,7 +427,7 @@ intersection _ Nil = Nil
 -- | /O(n+m)/. Is this a proper subset? (ie. a subset but not equal).
 isProperSubsetOf :: IntSet -> IntSet -> Bool
 isProperSubsetOf t1 t2
-  = case subsetCmp t1 t2 of 
+  = case subsetCmp t1 t2 of
       LT -> True
       _  -> False
 
@@ -448,10 +450,10 @@ subsetCmp t1@(Bin _ _ p1 m1 l1 r1) (Bin _ _ p2 m2 l2 r2)
                     _       -> LT
 
 subsetCmp (Bin _ _ _ _ _ _) _  = GT
-subsetCmp (Tip _ x) (Tip _ y)  
+subsetCmp (Tip _ x) (Tip _ y)
   | x==y       = EQ
   | otherwise  = GT  -- disjoint
-subsetCmp (Tip _ x) t        
+subsetCmp (Tip _ x) t
   | member x t = LT
   | otherwise  = GT  -- disjoint
 subsetCmp Nil Nil = EQ
@@ -464,7 +466,7 @@ isSubsetOf :: IntSet -> IntSet -> Bool
 isSubsetOf t1@(Bin _ _ p1 m1 l1 r1) (Bin _ _ p2 m2 l2 r2)
   | shorter m1 m2  = False
   | shorter m2 m1  = match p1 p2 m2 && (if zero p1 m2 then isSubsetOf t1 l2
-                                                      else isSubsetOf t1 r2)                     
+                                                      else isSubsetOf t1 r2)
   | otherwise      = (p1==p2) && isSubsetOf l1 l2 && isSubsetOf r1 r2
 isSubsetOf (Bin _ _ _ _ _ _) _  = False
 isSubsetOf (Tip _ x) t          = member x t
@@ -478,9 +480,9 @@ isSubsetOf Nil _                = True
 filter :: (Int -> Bool) -> IntSet -> IntSet
 filter predicate t
   = case t of
-      Bin _ _ p m l r 
+      Bin _ _ p m l r
         -> bin p m (filter predicate l) (filter predicate r)
-      Tip _ x 
+      Tip _ x
         | predicate x -> t
         | otherwise   -> Nil
       Nil -> Nil
@@ -489,11 +491,11 @@ filter predicate t
 partition :: (Int -> Bool) -> IntSet -> (IntSet,IntSet)
 partition predicate t
   = case t of
-      Bin _ _ p m l r 
+      Bin _ _ p m l r
         -> let (l1,l2) = partition predicate l
                (r1,r2) = partition predicate r
            in (bin p m l1 r1, bin p m l2 r2)
-      Tip _ x 
+      Tip _ x
         | predicate x -> (t,Nil)
         | otherwise   -> (Nil,t)
       Nil -> (Nil,Nil)
@@ -512,7 +514,7 @@ split x t
                                    else let (lt,gt) = split' x r in (lt, union gt l)
                                    -- handle negative numbers.
         | otherwise   -> split' x t
-      Tip _ y 
+      Tip _ y
         | x>y         -> (t,Nil)
         | x<y         -> (Nil,t)
         | otherwise   -> (Nil,Nil)
@@ -526,7 +528,7 @@ split' x t
                                      else let (lt,gt) = split' x r in (union l lt,gt)
         | otherwise   -> if x < p then (Nil, t)
                                   else (t, Nil)
-      Tip _ y 
+      Tip _ y
         | x>y       -> (t,Nil)
         | x<y       -> (Nil,t)
         | otherwise -> (Nil,Nil)
@@ -542,7 +544,7 @@ splitMember x t
                                    else let (lt,found,gt) = splitMember' x r in (lt, found, union gt l)
                                    -- handle negative numbers.
         | otherwise   -> splitMember' x t
-      Tip _ y 
+      Tip _ y
         | x>y       -> (t,False,Nil)
         | x<y       -> (Nil,False,t)
         | otherwise -> (Nil,True,Nil)
@@ -556,7 +558,7 @@ splitMember' x t
                                        else let (lt,found,gt) = splitMember x r in (union l lt,found,gt)
          | otherwise   -> if x < p then (Nil, False, t)
                                    else (t, False, Nil)
-      Tip _ y 
+      Tip _ y
         | x>y       -> (t,False,Nil)
         | x<y       -> (Nil,False,t)
         | otherwise -> (Nil,True,Nil)
@@ -574,12 +576,12 @@ maxView :: IntSet -> Maybe (Int, IntSet)
 maxView t
     = case t of
         Bin _ _ p m l r | m < 0 -> let (result,t') = maxViewUnsigned l in Just (result, bin p m t' r)
-        Bin _ _ p m l r         -> let (result,t') = maxViewUnsigned r in Just (result, bin p m l t')            
+        Bin _ _ p m l r         -> let (result,t') = maxViewUnsigned r in Just (result, bin p m l t')
         Tip _ y -> Just (y,Nil)
         Nil -> Nothing
 
 maxViewUnsigned :: IntSet -> (Int, IntSet)
-maxViewUnsigned t 
+maxViewUnsigned t
     = case t of
         Bin _ _ p m l r -> let (result,t') = maxViewUnsigned r in (result, bin p m l t')
         Tip _ y -> (y, Nil)
@@ -590,26 +592,26 @@ maxViewUnsigned t
 minView :: IntSet -> Maybe (Int, IntSet)
 minView t
     = case t of
-        Bin _ _ p m l r | m < 0 -> let (result,t') = minViewUnsigned r in Just (result, bin p m l t')            
+        Bin _ _ p m l r | m < 0 -> let (result,t') = minViewUnsigned r in Just (result, bin p m l t')
         Bin _ _ p m l r         -> let (result,t') = minViewUnsigned l in Just (result, bin p m t' r)
         Tip _ y -> Just (y, Nil)
         Nil -> Nothing
 
 minViewUnsigned :: IntSet -> (Int, IntSet)
-minViewUnsigned t 
+minViewUnsigned t
     = case t of
         Bin _ _ p m l r -> let (result,t') = minViewUnsigned l in (result, bin p m t' r)
         Tip _ y -> (y, Nil)
         Nil -> error "minViewUnsigned Nil"
 
 -- | /O(min(n,W))/. Delete and find the minimal element.
--- 
+--
 -- > deleteFindMin set = (findMin set, deleteMin set)
 deleteFindMin :: IntSet -> (Int, IntSet)
 deleteFindMin = fromMaybe (error "deleteFindMin: empty set has no minimal element") . minView
 
 -- | /O(min(n,W))/. Delete and find the maximal element.
--- 
+--
 -- > deleteFindMax set = (findMax set, deleteMax set)
 deleteFindMax :: IntSet -> (Int, IntSet)
 deleteFindMax = fromMaybe (error "deleteFindMax: empty set has no maximal element") . maxView
@@ -650,9 +652,9 @@ deleteMax = maybe (error "deleteMax: empty set has no maximal element") snd . ma
   Map
 ----------------------------------------------------------------------}
 
--- | /O(n*min(n,W))/. 
+-- | /O(n*min(n,W))/.
 -- @'map' f s@ is the set obtained by applying @f@ to each element of @s@.
--- 
+--
 -- It's worth noting that the size of the result may be smaller if,
 -- for some @(x,y)@, @x \/= y && f x == f y@
 
@@ -669,7 +671,7 @@ map f = fromList . List.map f . toList
 fold :: (Int -> b -> b) -> b -> IntSet -> b
 fold f z t
   = case t of
-      Bin _ _ 0 m l r | m < 0 -> foldr f (foldr f z l) r  
+      Bin _ _ 0 m l r | m < 0 -> foldr f (foldr f z l) r
       -- put negative numbers before.
       Bin _ _ _ _ _ _ -> foldr f z t
       Tip _ x         -> f x z
@@ -681,16 +683,16 @@ foldr f z t
       Bin _ _ _ _ l r -> foldr f (foldr f z r) l
       Tip _ x         -> f x z
       Nil             -> z
-          
+
 {--------------------------------------------------------------------
-  List variations 
+  List variations
 --------------------------------------------------------------------}
 -- | /O(n)/. The elements of a set. (For sets, this is equivalent to toList)
 elems :: IntSet -> [Int]
 elems s = toList s
 
 {--------------------------------------------------------------------
-  Lists 
+  Lists
 --------------------------------------------------------------------}
 -- | /O(n)/. Convert the set to a list of elements.
 toList :: IntSet -> [Int]
@@ -708,12 +710,12 @@ fromList xs = foldlStrict ins empty xs
 
 -- | /O(n)/. Build a set from an ascending list of elements.
 -- /The precondition (input list is ascending) is not checked./
-fromAscList :: [Int] -> IntSet 
+fromAscList :: [Int] -> IntSet
 fromAscList [] = Nil
 fromAscList (x0 : xs0) = fromDistinctAscList (combineEq x0 xs0)
-  where 
+  where
     combineEq x' [] = [x']
-    combineEq x' (x:xs) 
+    combineEq x' (x:xs)
       | x==x'     = combineEq x' xs
       | otherwise = x' : combineEq x xs
 
@@ -770,29 +772,29 @@ showsTree wide lbars rbars t
              showWide wide lbars .
              showsTree wide (withEmpty lbars) (withBar lbars) l
       Tip _ x
-          -> showsBars lbars . showString " " . shows x . showString "\n" 
+          -> showsBars lbars . showString " " . shows x . showString "\n"
       Nil -> showsBars lbars . showString "|\n"
 
 showsTreeHang :: Bool -> [String] -> IntSet -> ShowS
 showsTreeHang wide bars t
   = case t of
       Bin _ _ p m l r
-          -> showsBars bars . showString (showBin p m) . showString "\n" . 
+          -> showsBars bars . showString (showBin p m) . showString "\n" .
              showWide wide bars .
              showsTreeHang wide (withBar bars) l .
              showWide wide bars .
              showsTreeHang wide (withEmpty bars) r
       Tip _ x
-          -> showsBars bars . showString " " . shows x . showString "\n" 
-      Nil -> showsBars bars . showString "|\n" 
+          -> showsBars bars . showString " " . shows x . showString "\n"
+      Nil -> showsBars bars . showString "|\n"
 
 showBin :: Prefix -> Mask -> String
 showBin _ _
   = "*" -- ++ show (p,m)
 
 showWide :: Bool -> [String] -> String -> String
-showWide wide bars 
-  | wide      = showString (concat (reverse bars)) . showString "|\n" 
+showWide wide bars
+  | wide      = showString (concat (reverse bars)) . showString "|\n"
   | otherwise = id
 
 showsBars :: [String] -> ShowS
@@ -809,7 +811,7 @@ withBar bars   = "|  ":bars
 withEmpty bars = "   ":bars
 
 {--------------------------------------------------------------------
-  Eq 
+  Eq
 --------------------------------------------------------------------}
 
 -- /O(1)/
@@ -820,7 +822,7 @@ instance Eq IntSet where
   _ == _ = False
 
 {--------------------------------------------------------------------
-  Ord 
+  Ord
   NB: this ordering is not the ordering implied by the elements
       but is usable for comparison
 --------------------------------------------------------------------}
@@ -830,11 +832,11 @@ instance Ord IntSet where
   Nil `compare` Bin _ _ _ _ _ _ = LT
   Tip _ _ `compare` Nil = GT
   Tip i _ `compare` Tip j _ = compare i j
-  Tip i _ `compare` Bin j _ _ _ _ _ = compare i j 
+  Tip i _ `compare` Bin j _ _ _ _ _ = compare i j
   Bin _ _ _ _ _ _ `compare` Nil = GT
   Bin i _ _ _ _ _ `compare` Tip j _ = compare i j
   Bin i _ _ _ _ _ `compare` Bin j _ _ _ _ _ = compare i j
-  -- compare s1 s2 = compare (toAscList s1) (toAscList s2) 
+  -- compare s1 s2 = compare (toAscList s1) (toAscList s2)
 
 {--------------------------------------------------------------------
   Show
@@ -871,7 +873,7 @@ join p1 t1 p2 t2
     p = mask p1 m
 
 
-  
+
 {--------------------------------------------------------------------
   Endian independent bit twiddling
 --------------------------------------------------------------------}
@@ -896,7 +898,7 @@ zeroN :: Nat -> Nat -> Bool
 zeroN i m = (i .&. m) == 0
 
 {--------------------------------------------------------------------
-  Big endian operations  
+  Big endian operations
 --------------------------------------------------------------------}
 maskW :: Nat -> Nat -> Prefix
 maskW i m
@@ -909,21 +911,21 @@ shorter m1 m2
 branchMask :: Prefix -> Prefix -> Mask
 branchMask p1 p2
   = intFromNat (highestBitMask (natFromInt p1 `xor` natFromInt p2))
-  
+
 {----------------------------------------------------------------------
   Finding the highest bit (mask) in a word [x] can be done efficiently in
   three ways:
-  * convert to a floating point value and the mantissa tells us the 
-    [log2(x)] that corresponds with the highest bit position. The mantissa 
-    is retrieved either via the standard C function [frexp] or by some bit 
-    twiddling on IEEE compatible numbers (float). Note that one needs to 
-    use at least [double] precision for an accurate mantissa of 32 bit 
+  * convert to a floating point value and the mantissa tells us the
+    [log2(x)] that corresponds with the highest bit position. The mantissa
+    is retrieved either via the standard C function [frexp] or by some bit
+    twiddling on IEEE compatible numbers (float). Note that one needs to
+    use at least [double] precision for an accurate mantissa of 32 bit
     numbers.
   * use bit twiddling, a logarithmic sequence of bitwise or's and shifts (bit).
   * use processor specific assembler instruction (asm).
 
   The most portable way would be [bit], but is it efficient enough?
-  I have measured the cycle counts of the different methods on an AMD 
+  I have measured the cycle counts of the different methods on an AMD
   Athlon-XP 1800 (~ Pentium III 1.8Ghz) using the RDTSC instruction:
 
   highestBitMask: method  cycles
@@ -946,7 +948,7 @@ branchMask p1 p2
 
 {----------------------------------------------------------------------
   [highestBitMask] returns a word where only the highest bit is set.
-  It is found by first setting all bits in lower positions than the 
+  It is found by first setting all bits in lower positions than the
   highest bit and than taking an exclusive or with the original value.
   Allthough the function may look expensive, GHC compiles this into
   excellent C code that subsequently compiled into highly efficient
@@ -964,7 +966,7 @@ highestBitMask x0
 
 
 {--------------------------------------------------------------------
-  Utilities 
+  Utilities
 --------------------------------------------------------------------}
 foldlStrict :: (a -> b -> a) -> a -> [b] -> a
 foldlStrict f z xs

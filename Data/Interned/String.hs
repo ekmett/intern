@@ -1,5 +1,5 @@
 module Data.Interned.String
-  ( InternedString
+  ( InternedString(internedStringId)
   ) where
 
 import Data.Interned.Internal.String

@@ -29,7 +29,7 @@ import GHC.IO (unsafeDupablePerformIO, unsafePerformIO)
 defaultCacheWidth :: Int
 defaultCacheWidth = 1024
 
-data CacheState t = CacheState 
+data CacheState t = CacheState
    { fresh :: {-# UNPACK #-} !Id
    , content :: !(HashMap (Description t) t)
    }
@@ -37,8 +37,8 @@ data CacheState t = CacheState
 newtype Cache t = Cache { getCache :: Array Int (IORef (CacheState t)) }
 
 cacheSize :: Cache t -> IO Int
-cacheSize (Cache t) = foldrM 
-   (\a b -> do 
+cacheSize (Cache t) = foldrM
+   (\a b -> do
        v <- readIORef a
        return $! HashMap.size (content v) + b
    ) 0 t
@@ -47,10 +47,10 @@ mkCache :: Interned t => Cache t
 mkCache   = result where
   element = CacheState (seedIdentity result) HashMap.empty
   w       = cacheWidth result
-  result  = Cache 
-          $ unsafePerformIO 
+  result  = Cache
+          $ unsafePerformIO
           $ traverse newIORef
-          $ listArray (0,w - 1) 
+          $ listArray (0,w - 1)
           $ replicate w element
 
 type Id = Int
@@ -60,9 +60,9 @@ class ( Eq (Description t)
       ) => Interned t where
   data Description t
   type Uninterned t
-  describe :: Uninterned t -> Description t 
+  describe :: Uninterned t -> Description t
   identify :: Id -> Uninterned t -> t
-  identity :: t -> Id
+  -- identity :: t -> Id
   seedIdentity :: p t -> Id
   seedIdentity _ = 0
   cacheWidth :: p t -> Int

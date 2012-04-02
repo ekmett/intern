@@ -8,15 +8,16 @@ import Data.Interned
 import Data.Hashable
 import Data.Foldable
 
-data InternedString = IS 
-  {-# UNPACK #-} !Id
-  String
+data InternedString = IS
+  { internedStringId :: {-# UNPACK #-} !Id
+  , uninternString :: String
+  }
 
 instance IsString InternedString where
   fromString = intern
 
 instance Eq InternedString where
-  IS i _ == IS j _ = i == j 
+  IS i _ == IS j _ = i == j
 
 instance Ord InternedString where
   compare (IS i _) (IS j _) = compare i j
@@ -27,15 +28,14 @@ instance Show InternedString where
 instance Interned InternedString where
   type Uninterned InternedString = String
   data Description InternedString = Cons {-# UNPACK #-} !Char String | Nil
-    deriving (Eq) 
+    deriving (Eq)
   describe (c:cs) = Cons c cs
   describe []     = Nil
   identify = IS
-  identity (IS i _) = i
   cache = stringCache
 
 instance Uninternable InternedString where
-  unintern (IS _ b) = b 
+  unintern = uninternString
 
 instance Hashable (Description InternedString) where
   hash (Cons c s) = foldl' hashWithSalt (hashWithSalt 0 c) s

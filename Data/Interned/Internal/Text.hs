@@ -8,9 +8,10 @@ import Data.Interned
 import Data.Text
 import Data.Hashable
 
-data InternedText = InternedText 
-  {-# UNPACK #-} !Id
-  {-# UNPACK #-} !Text
+data InternedText = InternedText
+  { internedTextId :: {-# UNPACK #-} !Id
+  , uninternedText :: {-# UNPACK #-} !Text
+  }
 
 instance IsString InternedText where
   fromString = intern . pack
@@ -26,14 +27,13 @@ instance Show InternedText where
 
 instance Interned InternedText where
   type Uninterned InternedText = Text
-  data Description InternedText = DT {-# UNPACK #-} !Text deriving (Eq) 
+  newtype Description InternedText = DT Text deriving (Eq)
   describe = DT
   identify = InternedText
-  identity (InternedText i _) = i
   cache = itCache
 
 instance Uninternable InternedText where
-  unintern (InternedText _ b) = b 
+  unintern (InternedText _ b) = b
 
 instance Hashable (Description InternedText) where
   hash (DT h) = hash h
