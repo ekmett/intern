@@ -38,8 +38,8 @@ instance Uninternable InternedString where
   unintern = uninternString
 
 instance Hashable (Description InternedString) where
-  hash (Cons c s) = foldl' hashWithSalt (hashWithSalt 0 c) s
-  hash Nil        = 0
+  hashWithSalt s (Cons c cs) = foldl' hashWithSalt (hashWithSalt s c) cs
+  hashWithSalt s Nil         = s `hashWithSalt` (0 :: Int)
 
 stringCache :: Cache InternedString
 stringCache = mkCache

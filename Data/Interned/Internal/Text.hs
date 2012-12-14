@@ -36,7 +36,7 @@ instance Uninternable InternedText where
   unintern (InternedText _ b) = b
 
 instance Hashable (Description InternedText) where
-  hash (DT h) = hash h
+  hashWithSalt s (DT h) = hashWithSalt s h
 
 itCache :: Cache InternedText
 itCache = mkCache

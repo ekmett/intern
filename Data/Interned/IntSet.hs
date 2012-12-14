@@ -202,9 +202,9 @@ instance Interned IntSet where
   cache = intSetCache
 
 instance Hashable (Description IntSet) where
-  hash DNil = 0
-  hash (DTip n) = 1 `hashWithSalt` n
-  hash (DBin p m l r) = hash p `hashWithSalt` m `hashWithSalt` l `hashWithSalt` r
+  hashWithSalt s DNil = s `hashWithSalt` (0 :: Int)
+  hashWithSalt s (DTip n) = s `hashWithSalt` (1 :: Int) `hashWithSalt` n
+  hashWithSalt s (DBin p m l r) = s `hashWithSalt` (2 :: Int) `hashWithSalt` p `hashWithSalt` m `hashWithSalt` l `hashWithSalt` r
 
 intSetCache :: Cache IntSet
 intSetCache = mkCache
