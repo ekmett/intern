@@ -27,6 +27,7 @@ import Data.HashMap.Strict (HashMap)
 import Data.Foldable
 import Data.Traversable
 import qualified Data.HashMap.Strict as HashMap
+import Foreign.StablePtr
 import GHC.Conc (pseq)
 import GHC.IO (unsafeDupablePerformIO, unsafePerformIO)
 import System.Mem.Weak
@@ -117,6 +118,10 @@ recover !dt = do
   CacheState _ m <- readMVar $ getCache cache ! (hash dt `mod` cacheWidth dt)
   join `fmap` traverse deRefWeak (HashMap.lookup dt m)
 
+-- try to force it so thou shalt not dispose of @t@ while @a@ is being computed, still not enough
 touch :: t -> a -> a
-touch t a = a `pseq` t `pseq` a
+touch t a = unsafeDupablePerformIO $ do
+  t' <- newStablePtr t
+  pseq t $ pseq a $ freeStablePtr t'
+  return a
 {-# NOINLINE touch #-}
