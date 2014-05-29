@@ -6,6 +6,9 @@ module Data.Interned
   , cacheSize
   , Id
   , intern
+  , eqId
+  , compareId
+  , touch
   ) where
 
 import Data.Interned.Internal

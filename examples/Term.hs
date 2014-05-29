@@ -21,12 +21,6 @@ data Term
   | Set {-# UNPACK #-} !Id {-# UNPACK #-} !Int
   deriving Show
 
-identity :: Term -> Int
-identity (App i _ _) = i
-identity (Lam i _ _ _) = i
-identity (Pi i _ _ _) = i
-identity (Set i _) = i
-
 data UninternedTerm
   = BApp Term Term
   | BLam Var Term Term
@@ -47,6 +41,10 @@ instance Interned Term where
     go (BLam v t e) = Lam i v t e
     go (BPi v t e) = Pi i v t e
     go (BSet n) = Set i n
+  identity (App i _ _) = i
+  identity (Lam i _ _ _) = i
+  identity (Pi i _ _ _) = i
+  identity (Set i _) = i
   cache = termCache
 
 instance Uninternable Term where

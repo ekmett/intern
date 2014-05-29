@@ -15,6 +15,8 @@ module Data.Interned.Internal
   , intern
   , recover
   , touch
+  , eqId
+  , compareId
   ) where
 
 import Control.Concurrent.MVar
@@ -66,7 +68,7 @@ class ( Eq (Description t)
   type Uninterned t
   describe :: Uninterned t -> Description t
   identify :: Id -> Uninterned t -> t
-  -- identity :: t -> Id
+  identity :: t -> Id
   seedIdentity :: p t -> Id
   seedIdentity _ = 0
   cacheWidth :: p t -> Int
@@ -77,6 +79,12 @@ class ( Eq (Description t)
 
 class Interned t => Uninternable t where
   unintern :: t -> Uninterned t
+
+compareId :: Interned t => t -> t -> Ordering
+compareId a b = touch a $ touch b $ compare (identity a) (identity b)
+
+eqId :: Interned t => t -> t -> Bool
+eqId a b = touch a $ touch b $ identity a == identity b
 
 intern :: Interned t => Uninterned t -> t
 intern !bt = unsafeDupablePerformIO $ modifyAdvice $

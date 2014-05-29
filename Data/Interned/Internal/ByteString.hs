@@ -18,10 +18,10 @@ instance IsString InternedByteString where
   fromString = intern . Char8.pack
 
 instance Eq InternedByteString where
-  InternedByteString i _ == InternedByteString j _ = i == j
+  (==) = eqId
 
 instance Ord InternedByteString where
-  InternedByteString i _ `compare` InternedByteString j _ = i `compare` j
+  compare = compareId
 
 instance Show InternedByteString where
   showsPrec d (InternedByteString _ b) = showsPrec d b
@@ -31,6 +31,7 @@ instance Interned InternedByteString where
   newtype Description InternedByteString = DBS ByteString deriving (Eq,Hashable)
   describe = DBS
   identify = InternedByteString
+  identity = internedByteStringId
   cache = ibsCache
 
 instance Uninternable InternedByteString where

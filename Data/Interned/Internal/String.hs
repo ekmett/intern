@@ -32,6 +32,7 @@ instance Interned InternedString where
   describe (c:cs) = Cons c cs
   describe []     = Nil
   identify = IS
+  identity = internedStringId
   cache = stringCache
 
 instance Uninternable InternedString where

@@ -1,4 +1,4 @@
-{-# LANGUAGE MagicHash, TypeFamilies, FlexibleInstances, BangPatterns #-}
+{-# LANGUAGE MagicHash, TypeFamilies, FlexibleInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Interned.IntSet
@@ -88,7 +88,7 @@ module Data.Interned.IntSet  (
             , minView
 
             -- * Map
-	    , map
+            , map
 
             -- * Fold
             , fold
@@ -128,10 +128,10 @@ infixl 9 \\{-This comment teaches CPP correct behaviour -}
 type Nat = Word
 
 natFromInt :: Int -> Nat
-natFromInt i = fromIntegral i
+natFromInt = fromIntegral
 
 intFromNat :: Nat -> Int
-intFromNat w = fromIntegral w
+intFromNat = fromIntegral
 
 shiftRL :: Nat -> Int -> Nat
 shiftRL (W# x) (I# i) = W# (shiftRL# x i)
@@ -179,11 +179,6 @@ bin p m l r = intern (UBin p m l r)
 bin_ :: Prefix -> Mask -> IntSet -> IntSet -> IntSet
 bin_ p m l r = intern (UBin p m l r)
 
-identity :: IntSet -> Id
-identity Nil = 0
-identity (Tip i _) = i
-identity (Bin i _ _ _ _ _) = i
-
 instance Interned IntSet where
   type Uninterned IntSet = UninternedIntSet
   data Description IntSet
@@ -194,12 +189,15 @@ instance Interned IntSet where
   describe UNil = DNil
   describe (UTip j) = DTip j
   describe (UBin p m l r) = DBin p m (identity l) (identity r)
-  cacheWidth _ = 16384 -- a huge cache width!
+  cacheWidth _ = 100 -- a huge cache width!
   seedIdentity _ = 1
   identify _ UNil = Nil
   identify i (UTip j) = Tip i j
   identify i (UBin p m l r) = Bin i (size l + size r) p m l r
   cache = intSetCache
+  identity Nil = 0
+  identity (Tip i _) = i
+  identity (Bin i _ _ _ _ _) = i
 
 instance Hashable (Description IntSet) where
   hashWithSalt s DNil = s `hashWithSalt` (0 :: Int)
@@ -249,7 +247,7 @@ member x t
         | nomatch x p m -> False
         | zero x m      -> member x l
         | otherwise     -> member x r
-      Tip _ y -> (x==y)
+      Tip _ y -> x == y
       Nil     -> False
 
 -- | /O(min(n,W))/. Is the element not in the set?
@@ -268,7 +266,7 @@ lookupN k t
         | zeroN k (natFromInt m) -> lookupN k l
         | otherwise              -> lookupN k r
       Tip _ kx
-        | (k == natFromInt kx)  -> Just kx
+        | k == natFromInt kx    -> Just kx
         | otherwise             -> Nothing
       Nil -> Nothing
 
@@ -282,7 +280,7 @@ empty = Nil
 
 -- | /O(1)/. A set of one element.
 singleton :: Int -> IntSet
-singleton x = tip x
+singleton = tip
 
 
 
@@ -337,7 +335,7 @@ delete x t
 --------------------------------------------------------------------}
 -- | The union of a list of sets.
 unions :: [IntSet] -> IntSet
-unions xs = foldlStrict union empty xs
+unions = foldlStrict union empty
 
 
 -- | /O(n+m)/. The union of two sets.
@@ -449,7 +447,7 @@ subsetCmp t1@(Bin _ _ p1 m1 l1 r1) (Bin _ _ p2 m2 l2 r2)
                     (EQ,EQ) -> EQ
                     _       -> LT
 
-subsetCmp (Bin _ _ _ _ _ _) _  = GT
+subsetCmp Bin{} _  = GT
 subsetCmp (Tip _ x) (Tip _ y)
   | x==y       = EQ
   | otherwise  = GT  -- disjoint
@@ -465,10 +463,9 @@ subsetCmp Nil _   = LT
 isSubsetOf :: IntSet -> IntSet -> Bool
 isSubsetOf t1@(Bin _ _ p1 m1 l1 r1) (Bin _ _ p2 m2 l2 r2)
   | shorter m1 m2  = False
-  | shorter m2 m1  = match p1 p2 m2 && (if zero p1 m2 then isSubsetOf t1 l2
-                                                      else isSubsetOf t1 r2)
+  | shorter m2 m1  = match p1 p2 m2 && isSubsetOf t1 (if zero p1 m2 then l2 else r2)
   | otherwise      = (p1==p2) && isSubsetOf l1 l2 && isSubsetOf r1 r2
-isSubsetOf (Bin _ _ _ _ _ _) _  = False
+isSubsetOf Bin{} _              = False
 isSubsetOf (Tip _ x) t          = member x t
 isSubsetOf Nil _                = True
 
@@ -816,10 +813,11 @@ withEmpty bars = "   ":bars
 
 -- /O(1)/
 instance Eq IntSet where
-  Nil             == Nil             = True
-  Tip i _         == Tip j _         = i == j
-  Bin i _ _ _ _ _ == Bin j _ _ _ _ _ = i == j
-  _ == _ = False
+  a == b = touch a $ touch b $ a ==# b where
+    Nil             ==# Nil             = True
+    Tip i _         ==# Tip j _         = i == j
+    Bin i _ _ _ _ _ ==# Bin j _ _ _ _ _ = i == j
+    _ ==# _ = False
 
 {--------------------------------------------------------------------
   Ord
@@ -827,16 +825,17 @@ instance Eq IntSet where
       but is usable for comparison
 --------------------------------------------------------------------}
 instance Ord IntSet where
-  Nil `compare` Nil = EQ
-  Nil `compare` Tip _ _ = LT
-  Nil `compare` Bin _ _ _ _ _ _ = LT
-  Tip _ _ `compare` Nil = GT
-  Tip i _ `compare` Tip j _ = compare i j
-  Tip i _ `compare` Bin j _ _ _ _ _ = compare i j
-  Bin _ _ _ _ _ _ `compare` Nil = GT
-  Bin i _ _ _ _ _ `compare` Tip j _ = compare i j
-  Bin i _ _ _ _ _ `compare` Bin j _ _ _ _ _ = compare i j
-  -- compare s1 s2 = compare (toAscList s1) (toAscList s2)
+  compare a b = touch a $ touch b $ go a b where
+    Nil `go` Nil = EQ
+    Nil `go` Tip _ _ = LT
+    Nil `go` Bin _ _ _ _ _ _ = LT
+    Tip _ _ `go` Nil = GT
+    Tip i _ `go` Tip j _ = compare i j
+    Tip i _ `go` Bin j _ _ _ _ _ = compare i j
+    Bin _ _ _ _ _ _ `go` Nil = GT
+    Bin i _ _ _ _ _ `go` Tip j _ = compare i j
+    Bin i _ _ _ _ _ `go` Bin j _ _ _ _ _ = compare i j
+    -- compare s1 s2 = compare (toAscList s1) (toAscList s2)
 
 {--------------------------------------------------------------------
   Show

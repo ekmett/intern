@@ -17,10 +17,10 @@ instance IsString InternedText where
   fromString = intern . pack
 
 instance Eq InternedText where
-  InternedText i _ == InternedText j _ = i == j
+  (==) = eqId
 
 instance Ord InternedText where
-  compare (InternedText i _) (InternedText j _) = compare i j
+  compare = compareId
 
 instance Show InternedText where
   showsPrec d (InternedText _ b) = showsPrec d b
@@ -30,6 +30,7 @@ instance Interned InternedText where
   newtype Description InternedText = DT Text deriving (Eq)
   describe = DT
   identify = InternedText
+  identity = internedTextId
   cache = itCache
 
 instance Uninternable InternedText where
