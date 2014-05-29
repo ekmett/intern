@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeFamilies
            , FlexibleInstances
            , FlexibleContexts
+           , DeriveGeneric
            , GeneralizedNewtypeDeriving #-}
 
 module Term where
@@ -8,39 +9,44 @@ module Term where
 import Data.Function (on)
 import Data.Hashable
 import Data.Interned
+import GHC.Generics
 
 type Var = Int
 
+
 data Term
-  = App {-# UNPACK #-} !(Id Term) !Term !Term
-  | Lam {-# UNPACK #-} !(Id Term) {-# UNPACK #-} !Var !Term !Term
-  | Pi  {-# UNPACK #-} !(Id Term) {-# UNPACK #-} !Var !Term !Term
-  | Set {-# UNPACK #-} !(Id Term) {-# UNPACK #-} !Int
+  = App {-# UNPACK #-} !Id !Term !Term
+  | Lam {-# UNPACK #-} !Id {-# UNPACK #-} !Var !Term !Term
+  | Pi  {-# UNPACK #-} !Id {-# UNPACK #-} !Var !Term !Term
+  | Set {-# UNPACK #-} !Id {-# UNPACK #-} !Int
   deriving Show
-data UninternedTerm 
+
+identity :: Term -> Int
+identity (App i _ _) = i
+identity (Lam i _ _ _) = i
+identity (Pi i _ _ _) = i
+identity (Set i _) = i
+
+data UninternedTerm
   = BApp Term Term
-  | BLam Var Term Term 
+  | BLam Var Term Term
   | BPi  Var Term Term
   | BSet Int deriving Show
 instance Interned Term where
   type Uninterned Term = UninternedTerm
-  data Description Term = DApp (Id Term) (Id Term)
-                 | DLam Var (Id Term) (Id Term)
-                 | DPi  Var (Id Term) (Id Term)
-                 | DSet Int deriving Show
-  describe (BApp f a)   = DApp (identity f) (identity a) 
+  data Description Term = DApp Id Id
+                 | DLam Var Id Id
+                 | DPi  Var Id Id
+                 | DSet Int deriving (Show,Generic)
+  describe (BApp f a)   = DApp (identity f) (identity a)
   describe (BLam v t e) = DLam v (identity t) (identity e)
   describe (BPi v t e)  = DPi v (identity t) (identity e)
   describe (BSet n) = DSet n
   identify i = go where
-    go (BApp f a) = App i f a 
+    go (BApp f a) = App i f a
     go (BLam v t e) = Lam i v t e
     go (BPi v t e) = Pi i v t e
     go (BSet n) = Set i n
-  identity (App i _ _) = i
-  identity (Lam i _ _ _) = i
-  identity (Pi i _ _ _) = i
-  identity (Set i _) = i
   cache = termCache
 
 instance Uninternable Term where
@@ -60,11 +66,7 @@ instance Eq (Description Term) where
   DSet n       == DSet n'       = n == n'
   _            == _             = False
 
-instance Hashable (Description Term) where
-  hash (DApp f a)   = 0 `hashWithSalt` f `hashWithSalt` a
-  hash (DLam v t e) = 1 `hashWithSalt` v `hashWithSalt` t `hashWithSalt` e
-  hash (DPi v t e)  = 2 `hashWithSalt` v `hashWithSalt` t `hashWithSalt` e
-  hash (DSet n)     = 3 `hashWithSalt` n
+instance Hashable (Description Term)
 
 instance Eq Term where
   (==) = (==) `on` identity
