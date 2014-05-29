@@ -14,6 +14,7 @@ module Data.Interned.Internal
   , Id
   , intern
   , recover
+  , touch
   ) where
 
 import Control.Concurrent.MVar
@@ -24,6 +25,7 @@ import Data.HashMap.Strict (HashMap)
 import Data.Foldable
 import Data.Traversable
 import qualified Data.HashMap.Strict as HashMap
+import GHC.Conc (pseq)
 import GHC.IO (unsafeDupablePerformIO, unsafePerformIO)
 import System.Mem.Weak
 
@@ -106,3 +108,7 @@ recover :: Interned t => Description t -> IO (Maybe t)
 recover !dt = do
   CacheState _ m <- readMVar $ getCache cache ! (hash dt `mod` cacheWidth dt)
   join `fmap` traverse deRefWeak (HashMap.lookup dt m)
+
+touch :: t -> a -> a
+touch t a = a `pseq` t `pseq` a
+{-# NOINLINE touch #-}
