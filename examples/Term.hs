@@ -12,10 +12,10 @@ import Data.Interned
 type Var = Int
 
 data Term
-  = App {-# UNPACK #-} !(Id Term) !Term !Term
-  | Lam {-# UNPACK #-} !(Id Term) {-# UNPACK #-} !Var !Term !Term
-  | Pi  {-# UNPACK #-} !(Id Term) {-# UNPACK #-} !Var !Term !Term
-  | Set {-# UNPACK #-} !(Id Term) {-# UNPACK #-} !Int
+  = App {-# UNPACK #-} !Id !Term !Term
+  | Lam {-# UNPACK #-} !Id {-# UNPACK #-} !Var !Term !Term
+  | Pi  {-# UNPACK #-} !Id {-# UNPACK #-} !Var !Term !Term
+  | Set {-# UNPACK #-} !Id {-# UNPACK #-} !Int
   deriving Show
 data UninternedTerm 
   = BApp Term Term
@@ -24,9 +24,9 @@ data UninternedTerm
   | BSet Int deriving Show
 instance Interned Term where
   type Uninterned Term = UninternedTerm
-  data Description Term = DApp (Id Term) (Id Term)
-                 | DLam Var (Id Term) (Id Term)
-                 | DPi  Var (Id Term) (Id Term)
+  data Description Term = DApp Id Id
+                 | DLam Var Id Id
+                 | DPi  Var Id Id
                  | DSet Int deriving Show
   describe (BApp f a)   = DApp (identity f) (identity a) 
   describe (BLam v t e) = DLam v (identity t) (identity e)
