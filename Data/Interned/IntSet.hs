@@ -1,4 +1,4 @@
-{-# LANGUAGE MagicHash, TypeFamilies, FlexibleInstances, BangPatterns #-}
+{-# LANGUAGE MagicHash, TypeFamilies, FlexibleInstances, BangPatterns, CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Interned.IntSet
@@ -113,6 +113,9 @@ import Prelude hiding (lookup,filter,foldr,foldl,null,map)
 import qualified Data.List as List
 import Data.Monoid (Monoid(..))
 import Data.Maybe (fromMaybe)
+#if MIN_VERSION_base(4,9,0) && !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup (Semigroup(..))
+#endif
 import Data.Interned.Internal
 import Data.Bits
 import Data.Hashable
@@ -218,9 +221,16 @@ instance Uninternable IntSet where
 type Prefix = Int
 type Mask   = Int
 
+#if MIN_VERSION_base(4,9,0)
+instance Semigroup IntSet where
+    (<>) = union
+#endif
+
 instance Monoid IntSet where
     mempty  = empty
+#if !(MIN_VERSION_base(4,11,0))
     mappend = union
+#endif
     mconcat = unions
 
 
