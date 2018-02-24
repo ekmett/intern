@@ -960,7 +960,7 @@ branchMask p1 p2
   [highestBitMask] returns a word where only the highest bit is set.
   It is found by first setting all bits in lower positions than the
   highest bit and than taking an exclusive or with the original value.
-  Allthough the function may look expensive, GHC compiles this into
+  Although the function may look expensive, GHC compiles this into
   excellent C code that subsequently compiled into highly efficient
   machine code. The algorithm is derived from Jorg Arndt's FXT library.
 ----------------------------------------------------------------------}
