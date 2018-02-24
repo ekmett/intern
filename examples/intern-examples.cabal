@@ -1,6 +1,6 @@
-name:          intern
+name:          intern-examples
 category:      Data, Data Structures
-version:       0.9.1.4
+version:       0.1
 license:       BSD3
 cabal-version: >= 1.6
 license-file:  LICENSE
@@ -20,10 +20,8 @@ tested-with:   GHC == 7.0.4
              , GHC == 8.0.2
              , GHC == 8.2.2
              , GHC == 8.4.1
-synopsis:      Efficient hash-consing for arbitrary data types
-description:   Efficient hash-consing for arbitrary data types.
-
-extra-source-files: examples/Term.hs, CHANGELOG.markdown, README.markdown
+synopsis:      An example program using @intern@
+description:   An example program using @intern@.
 
 source-repository head
   type: git
@@ -32,21 +30,8 @@ source-repository head
 library
   build-depends:
     base                 >= 4     && < 5,
-    bytestring           >= 0.9   && < 0.11,
-    text                 >= 0.11  && < 1.3,
     hashable             >= 1.1   && < 1.3,
-    unordered-containers >= 0.2.1 && < 0.3,
-    array                >= 0.3   && < 0.6
+    intern
 
-  exposed-modules:
-    Data.Interned
-    Data.Interned.ByteString
-    Data.Interned.String
-    Data.Interned.Text
-    Data.Interned.IntSet
-    Data.Interned.Internal
-    Data.Interned.Internal.ByteString
-    Data.Interned.Internal.String
-    Data.Interned.Internal.Text
-
+  exposed-modules: Term
   ghc-options: -Wall
