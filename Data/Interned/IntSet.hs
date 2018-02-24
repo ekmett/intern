@@ -88,7 +88,7 @@ module Data.Interned.IntSet  (
             , minView
 
             -- * Map
-	    , map
+            , map
 
             -- * Fold
             , fold
