@@ -1,5 +1,5 @@
-next
-----
+0.9.2
+-----
 * Add a `Semigroup IntSet` instance.
 
 0.9
