@@ -17,9 +17,9 @@ data Term
   | Pi  {-# UNPACK #-} !Id {-# UNPACK #-} !Var !Term !Term
   | Set {-# UNPACK #-} !Id {-# UNPACK #-} !Int
   deriving Show
-data UninternedTerm 
+data UninternedTerm
   = BApp Term Term
-  | BLam Var Term Term 
+  | BLam Var Term Term
   | BPi  Var Term Term
   | BSet Int deriving Show
 instance Interned Term where
@@ -28,17 +28,18 @@ instance Interned Term where
                  | DLam Var Id Id
                  | DPi  Var Id Id
                  | DSet Int deriving Show
-  describe (BApp f a)   = DApp (identity f) (identity a) 
+  describe (BApp f a)   = DApp (identity f) (identity a)
   describe (BLam v t e) = DLam v (identity t) (identity e)
   describe (BPi v t e)  = DPi v (identity t) (identity e)
   describe (BSet n) = DSet n
   identify i = go where
-    go (BApp f a) = App i f a 
+    go (BApp f a) = App i f a
     go (BLam v t e) = Lam i v t e
     go (BPi v t e) = Pi i v t e
     go (BSet n) = Set i n
   cache = termCache
 
+identity :: Term -> Id
 identity (App i _ _) = i
 identity (Lam i _ _ _) = i
 identity (Pi i _ _ _) = i
@@ -62,10 +63,10 @@ instance Eq (Description Term) where
   _            == _             = False
 
 instance Hashable (Description Term) where
-  hash (DApp f a)   = 0 `hashWithSalt` f `hashWithSalt` a
-  hash (DLam v t e) = 1 `hashWithSalt` v `hashWithSalt` t `hashWithSalt` e
-  hash (DPi v t e)  = 2 `hashWithSalt` v `hashWithSalt` t `hashWithSalt` e
-  hash (DSet n)     = 3 `hashWithSalt` n
+  hashWithSalt s (DApp f a)   = s `hashWithSalt` (0 :: Int) `hashWithSalt` f `hashWithSalt` a
+  hashWithSalt s (DLam v t e) = s `hashWithSalt` (1 :: Int) `hashWithSalt` v `hashWithSalt` t `hashWithSalt` e
+  hashWithSalt s (DPi v t e)  = s `hashWithSalt` (2 :: Int) `hashWithSalt` v `hashWithSalt` t `hashWithSalt` e
+  hashWithSalt s (DSet n)     = s `hashWithSalt` (3 :: Int) `hashWithSalt` n
 
 instance Eq Term where
   (==) = (==) `on` identity
