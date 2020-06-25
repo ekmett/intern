@@ -111,16 +111,20 @@ module Data.Interned.IntSet  (
 
 import Prelude hiding (lookup,filter,foldr,foldl,null,map)
 import qualified Data.List as List
-import Data.Monoid (Monoid(..))
 import Data.Maybe (fromMaybe)
-#if MIN_VERSION_base(4,9,0) && !(MIN_VERSION_base(4,11,0))
-import Data.Semigroup (Semigroup(..))
-#endif
 import Data.Interned.Internal
 import Data.Bits
 import Data.Hashable
 import Text.Read
 import GHC.Exts ( Word(..), Int(..), shiftRL# )
+
+#if !(MIN_VERSION_base(4,8,0))
+import Data.Monoid (Monoid(..))
+#endif
+
+#if MIN_VERSION_base(4,9,0) && !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup (Semigroup(..))
+#endif
 
 -- import Data.Typeable
 -- import Data.Data (Data(..), mkNoRepType)
