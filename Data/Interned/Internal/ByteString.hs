@@ -26,6 +26,9 @@ instance Ord InternedByteString where
 instance Show InternedByteString where
   showsPrec d (InternedByteString _ b) = showsPrec d b
 
+instance Hashable InternedByteString where
+  hashWithSalt s (InternedByteString i _) = hashWithSalt s i
+
 instance Interned InternedByteString where
   type Uninterned InternedByteString = ByteString
   newtype Description InternedByteString = DBS ByteString deriving (Eq,Hashable)
