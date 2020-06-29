@@ -25,6 +25,9 @@ instance Ord InternedText where
 instance Show InternedText where
   showsPrec d (InternedText _ b) = showsPrec d b
 
+instance Hashable InternedText where
+  hashWithSalt s (InternedText i _) = hashWithSalt s i
+
 instance Interned InternedText where
   type Uninterned InternedText = Text
   newtype Description InternedText = DT Text deriving (Eq)

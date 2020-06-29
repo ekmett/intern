@@ -859,6 +859,11 @@ instance Show IntSet where
   showsPrec p xs = showParen (p > 10) $
     showString "fromList " . shows (toList xs)
 
+{--------------------------------------------------------------------
+  Hashable
+--------------------------------------------------------------------}
+instance Hashable IntSet where
+  hashWithSalt s x = hashWithSalt s $ identity x
 
 {--------------------------------------------------------------------
   Read

@@ -25,6 +25,9 @@ instance Ord InternedString where
 instance Show InternedString where
   showsPrec d (IS _ b) = showsPrec d b
 
+instance Hashable InternedString where
+  hashWithSalt s (IS i _) = hashWithSalt s i
+
 instance Interned InternedString where
   type Uninterned InternedString = String
   data Description InternedString = Cons {-# UNPACK #-} !Char String | Nil
