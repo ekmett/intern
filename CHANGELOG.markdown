@@ -1,5 +1,5 @@
-next [????.??.??]
------------------
+0.9.3 [2020.09.30]
+------------------
 * Add `Hashable` instances for `InternedString`, `InternedByteString`,
   `InternedText`, and `IntSet`.
 
