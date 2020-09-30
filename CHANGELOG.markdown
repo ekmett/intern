@@ -1,3 +1,8 @@
+next [????.??.??]
+-----------------
+* Add `Hashable` instances for `InternedString`, `InternedByteString`,
+  `InternedText`, and `IntSet`.
+
 0.9.2
 -----
 * Add a `Semigroup IntSet` instance.
