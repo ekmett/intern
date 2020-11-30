@@ -49,6 +49,8 @@ module Data.Interned.IntSet  (
             -- * Set type
               IntSet          -- instance Eq,Show
 
+            , identity
+
             -- * Operators
             , (\\)
 
@@ -186,6 +188,7 @@ bin p m l r = intern (UBin p m l r)
 bin_ :: Prefix -> Mask -> IntSet -> IntSet -> IntSet
 bin_ p m l r = intern (UBin p m l r)
 
+-- | A unique integer ID associated with each interned set
 identity :: IntSet -> Id
 identity Nil = 0
 identity (Tip i _) = i
