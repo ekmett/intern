@@ -1,7 +1,7 @@
 intern
 ======
 
-[![Hackage](https://img.shields.io/hackage/v/intern.svg)](https://hackage.haskell.org/package/intern) [![Build Status](https://secure.travis-ci.org/ekmett/intern.png?branch=master)](http://travis-ci.org/ekmett/intern)
+[![Hackage](https://img.shields.io/hackage/v/intern.svg)](https://hackage.haskell.org/package/intern) [![Build Status](https://github.com/ekmett/intern/workflows/Haskell-CI/badge.svg)](https://github.com/ekmett/intern/actions?query=workflow%3AHaskell-CI)
 
 Efficient hash-consing for arbitrary data types.
 
