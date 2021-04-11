@@ -5,8 +5,8 @@ module Data.Interned.Internal.ByteString
 
 import Data.String
 import Data.Interned
-import Data.ByteString
-import Data.ByteString.Char8 as Char8
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as Char8
 import Data.Hashable
 
 data InternedByteString = InternedByteString

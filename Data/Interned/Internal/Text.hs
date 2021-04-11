@@ -5,7 +5,8 @@ module Data.Interned.Internal.Text
 
 import Data.String
 import Data.Interned
-import Data.Text
+import qualified Data.Text as T
+import Data.Text (Text)
 import Data.Hashable
 
 data InternedText = InternedText
@@ -14,7 +15,7 @@ data InternedText = InternedText
   }
 
 instance IsString InternedText where
-  fromString = intern . pack
+  fromString = intern . T.pack
 
 instance Eq InternedText where
   InternedText i _ == InternedText j _ = i == j
