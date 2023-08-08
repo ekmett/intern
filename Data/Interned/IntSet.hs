@@ -817,8 +817,8 @@ showWide wide bars
 showsBars :: [String] -> ShowS
 showsBars bars
   = case bars of
-      [] -> id
-      _  -> showString (concat (reverse (tail bars))) . showString node
+      []      -> id
+      _:bars' -> showString (concat (reverse bars')) . showString node
 
 node :: String
 node           = "+--"

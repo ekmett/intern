@@ -1,3 +1,7 @@
+next [????.??.??]
+-----------------
+* Remove a use of the partial `tail` function within `intern`.
+
 0.9.4 [2021.02.17]
 ------------------
 * Export `identity` from `Data.Interned.IntSet`.
