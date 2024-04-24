@@ -6,7 +6,7 @@ module Data.Interned.Internal.String
 import Data.String
 import Data.Interned
 import Data.Hashable
-import Data.Foldable
+import qualified Data.Foldable as F
 
 data InternedString = IS
   { internedStringId :: {-# UNPACK #-} !Id
@@ -41,7 +41,7 @@ instance Uninternable InternedString where
   unintern = uninternString
 
 instance Hashable (Description InternedString) where
-  hashWithSalt s (Cons c cs) = foldl' hashWithSalt (hashWithSalt s c) cs
+  hashWithSalt s (Cons c cs) = F.foldl' hashWithSalt (hashWithSalt s c) cs
   hashWithSalt s Nil         = s `hashWithSalt` (0 :: Int)
 
 stringCache :: Cache InternedString
