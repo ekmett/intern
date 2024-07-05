@@ -120,11 +120,7 @@ import Data.Hashable
 import Text.Read
 import GHC.Exts ( Word(..), Int(..), shiftRL# )
 
-#if !(MIN_VERSION_base(4,8,0))
-import Data.Monoid (Monoid(..))
-#endif
-
-#if MIN_VERSION_base(4,9,0) && !(MIN_VERSION_base(4,11,0))
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup (Semigroup(..))
 #endif
 
@@ -228,10 +224,8 @@ instance Uninternable IntSet where
 type Prefix = Int
 type Mask   = Int
 
-#if MIN_VERSION_base(4,9,0)
 instance Semigroup IntSet where
     (<>) = union
-#endif
 
 instance Monoid IntSet where
     mempty  = empty

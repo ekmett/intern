@@ -11,22 +11,18 @@ homepage:      http://github.com/ekmett/intern/
 bug-reports:   http://github.com/ekmett/intern/issues
 copyright:     Copyright (C) 2011-2014 Edward A. Kmett
 build-type:    Simple
-tested-with:   GHC == 7.0.4
-             , GHC == 7.2.2
-             , GHC == 7.4.2
-             , GHC == 7.6.3
-             , GHC == 7.8.4
-             , GHC == 7.10.3
-             , GHC == 8.0.2
+tested-with:   GHC == 8.0.2
              , GHC == 8.2.2
              , GHC == 8.4.4
              , GHC == 8.6.5
              , GHC == 8.8.4
              , GHC == 8.10.7
              , GHC == 9.0.2
-             , GHC == 9.2.7
-             , GHC == 9.4.5
-             , GHC == 9.6.2
+             , GHC == 9.2.8
+             , GHC == 9.4.8
+             , GHC == 9.6.6
+             , GHC == 9.8.2
+             , GHC == 9.10.1
 synopsis:      An example program using @intern@
 description:   An example program using @intern@.
 
@@ -36,7 +32,7 @@ source-repository head
 
 library
   build-depends:
-    base                 >= 4     && < 5,
+    base                 >= 4.9   && < 5,
     hashable             >= 1.1   && < 1.6,
     intern
 

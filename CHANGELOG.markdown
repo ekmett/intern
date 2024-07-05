@@ -1,3 +1,7 @@
+next [????.??.??]
+-----------------
+* Require building with GHC 8.0 or later.
+
 0.9.5 [2023.08.08]
 ------------------
 * Remove a use of the partial `tail` function within `intern`.

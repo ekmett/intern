@@ -20,11 +20,8 @@ module Data.Interned.Internal
 import Data.Array
 import Data.Hashable
 import Data.HashMap.Strict (HashMap)
-import Data.Foldable
-#if !(MIN_VERSION_base(4,8,0))
-import Data.Traversable
-#endif
 import qualified Data.HashMap.Strict as HashMap
+import Data.Foldable
 import Data.IORef
 import GHC.IO (unsafeDupablePerformIO, unsafePerformIO)
 
